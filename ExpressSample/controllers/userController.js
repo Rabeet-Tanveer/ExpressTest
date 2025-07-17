@@ -4,11 +4,23 @@ const jwt = require('jsonwebtoken');
 
 exports.register = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, type } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({ name: username, email, password: hashedPassword });
+    const user = await User.create({ 
+      name: username, 
+      email, 
+      password: hashedPassword,
+      type: type || 'user'
+     });
+    // Emit socket event after user creation
+    // const io = req.app.get('io');
+    // if (io) {
+    //   io.emit('usersUpdated');
+    //   console.log('Emitted usersUpdated event via socket.io');
+    // }
     res.status(201).json({ id: user.id, username: user.name, email: user.email });
   } catch (err) {
+    console.error('Register Error:', err);
     res.status(400).json({ error: err.message });
   }
 };
@@ -32,7 +44,7 @@ exports.login = async (req, res) => {
     res.json({
       message: 'Login successful',
       token,
-      user: { id: user.id, email: user.email }
+      user: { id: user.id, email: user.email, type: user.type }
     });
   } catch (err) {
     console.error(err);
@@ -46,6 +58,13 @@ exports.deleteUser = async (req, res) => {
     const deleted = await User.destroy({ where: { id } });
 
     if (!deleted) return res.status(404).json({ error: 'User not found' });
+
+    // Emit socket event after user deletion
+    // const io = req.app.get('io');
+    // if (io) {
+    //   io.emit('usersUpdated');
+    //   console.log('Emitted usersUpdated event via socket.io');
+    // }
 
     res.json({ message: 'User deleted successfully' });
   } catch (err) {
@@ -74,5 +93,30 @@ exports.changePassword = async (req, res) => {
     res.json({ message: 'Password updated successfully' });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// Add getAllUsers endpoint for frontend table
+exports.getAllUsers = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page -1) * limit;
+
+    const { count, rows } = await User.findAndCountAll({
+      attributes: ['id', 'name', 'email', 'type'],
+      limit,
+      offset,
+      order: [['id', 'ASC']]
+    });
+
+    res.json({
+      user: rows,
+      total: count,
+      page,
+      totalPages: Math.ceil(count/limit)
+    })
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
