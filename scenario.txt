@@ -1,0 +1,4 @@
+E-Commerce store
+products -> categories -> sub categories
+inventory, live updates to show count, live update incase count hits zero
+registration, login, proper auth.
