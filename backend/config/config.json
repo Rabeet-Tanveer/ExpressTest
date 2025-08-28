@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "postgres",
+    "password": "1234",
+    "database": "CRUDTesting",
+    "host": "postgres",
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "default",
+    "password": 1234,
+    "database": "database_test",
+    "host": "postgres",
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "default",
+    "password": 1234,
+    "database": "database_production",
+    "host": "postgres",
+    "dialect": "postgres"
+  }
+}
